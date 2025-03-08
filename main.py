@@ -130,6 +130,14 @@ def main(
             if not danger:
                 print("[FAIL] Exiting!!!!")
                 exit(4);
+            else:
+                print("[DANGER OVERRIDE]")
+                if not dryrun and not paper:
+                    print("you are about to use REAL LEVERAGE, on a REAL ACCOUNT")
+                    print("and this is not a dry run!")
+                    print("This is a bad fucking idea! Seriously, dont!")
+                    raise NotImplementedError("dont get rekt");
+                    exit(1);
 
     if not asset.tradable:
         print(f'[{selected_asset}] NOT TRADEABLE! [[ERROR]]')
@@ -156,6 +164,11 @@ def main(
         if int(sp.qty_available) >= 100:
             # we need not acquire 100 shares, we already have them!
             mode = ContractType.CALL
+
+    if mode == ContractType.PUT and leap:
+        print("PMCC NOT SUPPORTED YET!")
+        exit(5);
+
 
     # AT THIS POINT:
     #   - we have a good understanding of our account status
@@ -195,6 +208,8 @@ def main(
     highest_bid = x_list[-1] # the assumption is x_list is sorted by bid, so this is the highest bid
 
     new_limit_price = round(highest_bid.latest_quote.bid_price - 0.02, 2)
+
+
     if new_limit_price*100 < must_earn: # $100 at least
         # TODO: Don't hardcode this, make it adjustable!
         print(f"not enough premium! {new_limit_price*100} < {must_earn}")
