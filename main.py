@@ -46,23 +46,9 @@ from optionchain import *
 
 
 def print_banner():
-    howto = """
-How the Wheel Strategy works!
-(MAKE SURE YOU PICK A STOCK YOU LIKE AND ARE COMFORTABLE HOLDING THROUGH BEAR MARKETS!)
-
-Start with cash
-      1. sell a short dated, slightly OTM PUT, collect premium.
-      2. If unassigned, repeat step 1 until assigned! Free Premium!
-
-Youve Been assigned and are holding shares.
-      1. sell a short dated CALL (Strike MUST be no less than cost basis from PUT)
-        - Yes, Sometimes this means holding shares that continue to decline, selling low delta options for little premium. Dont take risks and sell CALLS below cost basis!
-      2. Repeat until assigned, return to PUTS\n"""
-
-
     print("Welcome to Alpaca-Wheel!")
     print("========================")
-    print(howto)
+    print()
 
 def setup_clients(paper: bool | None = None):
     from dotenv import load_dotenv
@@ -92,12 +78,27 @@ def setup_clients(paper: bool | None = None):
 # TODO: argparse/click/fire@click.command()
 def main(
         symbol: str,
+        *,
         delta_lte: float | str = 0.31,
         must_earn: int | float = 100,
+        leap: bool  = False,
         paper: bool | None =None,
         dryrun: bool = False,
-        danger: bool = False
+        danger: bool = False,
     ):
+    """ Run the Wheel Strategy
+
+    :param symbol: the stock you want to own
+    :param delta_lte: sell options <= delta
+    :param must_earn: FAIL if premium is not enough (try again later (NO REALLY! WAIT!))
+    :param leap: Collaterize with a Long call LEAP (Poor Mans Covered Call) Instead of CSP
+    :param paper: Are you using a paper account?
+    :param dryrun: Dont actually execute trades
+    :param danger: Sell even if you already have a short position (USES MARGIN! testing only)
+
+    :returns str: UUID of trade for later lookup 
+
+    """
     print_banner() # TODO: dont show this every time
 
     if paper is None:
@@ -213,7 +214,7 @@ def main(
     print(limit_order_data)
 
     if not dryrun:
-        #limit_order = trade_client.submit_order( order_data=limit_order_data)
+        limit_order = trade_client.submit_order( order_data=limit_order_data)
         print(f"Order Submitted! id: {limit_order.id}")
     else:
         print("DRY RUN! No orders submitted")

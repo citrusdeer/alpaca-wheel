@@ -16,7 +16,8 @@ def get_option_chain_request(stock, mode, bid, ask, account=None):
         if account:
             breakpoint()
             # TODO: check cost basis, do not sell CALLS below that
-        options = {"strike_price_gte": str(round(float(ask*1.05), 2))}
+        else:
+            options = {"strike_price_gte": str(round(float(ask*1.05), 2))}
 
     chain_request = OptionChainRequest(
                         underlying_symbol=stock,
