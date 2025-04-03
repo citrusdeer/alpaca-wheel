@@ -5,7 +5,7 @@ from alpaca.trading.enums import (
 )
 from datetime import date, timedelta
 
-def get_option_chain_request(stock, mode, bid, ask, account=None):
+def get_option_chain_request(stock, mode, bid, ask, account=None, sp=None, profit=1.00):
     consider = []
     if account:
         consider = [ float(account.cash)/100, float(account.buying_power)/100 ]
@@ -13,9 +13,9 @@ def get_option_chain_request(stock, mode, bid, ask, account=None):
     if mode == ContractType.PUT:
         options = {"strike_price_lte": str(round(min(float(bid*0.95), *consider), 2))}
     else:
-        if account:
-            breakpoint()
-            # TODO: check cost basis, do not sell CALLS below that
+        if getattr(sp, "cost_basis", None):
+            options = {"strike_price_gte": str((float(sp.cost_basis)/100)*profit)}
+            print(f"cost basis: {sp.cost_basis}")
         else:
             options = {"strike_price_gte": str(round(float(ask*1.05), 2))}
 

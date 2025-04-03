@@ -65,9 +65,16 @@ def get_bid_ask_table(stock, bid, ask, preferred_strike=""):
 def get_option_chain_with_greeks(chain_list):
     chain = Table("bid", "symbol", *OptionsGreeks.model_fields.keys(), title="Option Chain")
     for contract in chain_list:
-        chain.add_row(
-            f"{contract.latest_quote.bid_price:.2f}",
-            option_name_coloring(contract.symbol),
-            *(str(v) for k,v in contract.greeks),
-        )
+        if contract.greeks:
+            greeks = *[str(v) for k,v in dict(contract.greeks).items()],
+        else:
+            greeks = [" "," "," "," "," "]
+        try:
+            chain.add_row(
+                f"{contract.latest_quote.bid_price:.2f}",
+                option_name_coloring(contract.symbol),
+                *greeks
+            )
+        except Exception as e:
+            breakpoint()
     return chain

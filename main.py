@@ -81,6 +81,7 @@ def main(
         *,
         delta_lte: float | str = 0.31,
         must_earn: int | float = 100,
+        profit_percent: float = 1.00,
         leap: bool  = False,
         paper: bool | None =None,
         dryrun: bool = False,
@@ -154,6 +155,7 @@ def main(
     # so we must first sell a PUT!
     mode = ContractType.PUT
 
+    sp = None
     # Get our position in SMCI.
     with suppress(APIError):
         # stock position
@@ -180,7 +182,9 @@ def main(
                 mode,
                 bid,
                 ask,
-                account
+                account=account,
+                sp=sp,
+                profit=profit_percent,
     )
 
     #res = trade_client.get_option_contracts(chain_request)
@@ -192,7 +196,10 @@ def main(
 
     x = [contract for _, contract in chain_response.items()]
     x.sort(key = lambda item: item.latest_quote.bid_price)
-    x_filtered = filter(lambda c: c.greeks is not None and abs(c.greeks.delta) < abs(delta_lte), x)
+    if mode == ContractType.PUT:
+        x_filtered = filter(lambda c: c.greeks is not None and abs(c.greeks.delta) < abs(delta_lte), x)
+    else:
+        x_filtered = x
     x_list = list(x_filtered)
 
     console.print(get_option_chain_with_greeks(x_list))
@@ -207,7 +214,7 @@ def main(
 
     highest_bid = x_list[-1] # the assumption is x_list is sorted by bid, so this is the highest bid
 
-    new_limit_price = round(highest_bid.latest_quote.bid_price - 0.02, 2)
+    new_limit_price = round(highest_bid.latest_quote.bid_price - 0.01, 2)
 
 
     if new_limit_price*100 < must_earn: # $100 at least
